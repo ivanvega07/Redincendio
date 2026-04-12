@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estado de la Red de Incendio - Profertil</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <div class="logo">
+                    <svg width="40" height="40" viewBox="0 0 40 40">
+                        <circle cx="20" cy="20" r="18" fill="none" stroke="#0066aa" stroke-width="2"/>
+                        <text x="20" y="24" text-anchor="middle" fill="#0066aa" font-size="10" font-weight="bold">P</text>
+                    </svg>
+                </div>
+                <div class="logo-text">
+                    <span class="brand-name">PROFERTIL</span>
+                    <span class="brand-slogan">Vida para nuestra tierra</span>
+                </div>
+            </div>
+            <div class="header-center">
+                <h1>ESTADO DE LA RED DE INCENDIO</h1>
+            </div>
+            <div class="header-right">
+                <div class="mode-label">Modo: <span id="mode-display">Vista</span></div>
+                <button id="btn-toggle-mode" class="btn btn-mode" title="Alternar modo edición">
+                    <span id="mode-icon">&#9998;</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Sidebar -->
+            <aside class="sidebar">
+                <div class="legend">
+                    <h3>ESTADO DE LA RED DE INCENDIO</h3>
+                    <div class="legend-item">
+                        <span class="legend-color en-servicio"></span>
+                        <span>EN SERVICIO</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-color fuera-servicio"></span>
+                        <span>FUERA DE SERVICIO</span>
+                    </div>
+                </div>
+                <button id="btn-save" class="btn btn-save">Guardar Cambios</button>
+                <button id="btn-reset" class="btn btn-reset">Resetear Todo</button>
+                <div id="save-status" class="save-status"></div>
+
+                <div class="stats">
+                    <h4>Resumen</h4>
+                    <div class="stat-item">
+                        <span>Lineas en servicio:</span>
+                        <span id="lines-ok" class="stat-value">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span>Lineas fuera de servicio:</span>
+                        <span id="lines-off" class="stat-value">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span>Valvulas en servicio:</span>
+                        <span id="valves-ok" class="stat-value">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span>Valvulas fuera de servicio:</span>
+                        <span id="valves-off" class="stat-value">0</span>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- SVG Map -->
+            <div class="map-container" id="map-container">
+                <svg id="plant-map" viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <pattern id="water-pattern" patternUnits="userSpaceOnUse" width="20" height="20">
+                            <rect width="20" height="20" fill="#d4eaf7"/>
+                            <path d="M0 10 Q5 5 10 10 Q15 15 20 10" fill="none" stroke="#aad4ee" stroke-width="0.5"/>
+                        </pattern>
+                        <filter id="shadow">
+                            <feDropShadow dx="1" dy="1" stdDeviation="2" flood-opacity="0.2"/>
+                        </filter>
+                        <!-- Valve symbol (butterfly valve) -->
+                        <symbol id="valve-symbol" viewBox="-10 -10 20 20">
+                            <line x1="-7" y1="-7" x2="7" y2="7" stroke="inherit" stroke-width="2.5"/>
+                            <line x1="-7" y1="7" x2="7" y2="-7" stroke="inherit" stroke-width="2.5"/>
+                            <circle cx="0" cy="0" r="8" fill="none" stroke="inherit" stroke-width="2"/>
+                        </symbol>
+                    </defs>
+
+                    <!-- Background -->
+                    <rect width="1200" height="800" fill="#f5f5f0"/>
+
+                    <!-- Ria de Bahia Blanca (Water) -->
+                    <rect x="0" y="0" width="1200" height="120" fill="url(#water-pattern)" />
+                    <text x="450" y="40" class="water-label">Ria de Bahia Blanca</text>
+
+                    <!-- Coastline -->
+                    <path d="M0 120 Q100 110 200 120 Q300 125 400 118 Q500 112 600 120 Q700 128 800 118 Q900 110 1000 120 Q1100 125 1200 118"
+                          fill="none" stroke="#88aabb" stroke-width="2"/>
+
+                    <!-- ============ BUILDINGS / AREAS ============ -->
+
+                    <!-- MUELLE (Dock) -->
+                    <rect x="60" y="60" width="120" height="180" fill="none" stroke="#666" stroke-width="1.5" stroke-dasharray="5,3"/>
+                    <text x="120" y="160" class="area-label">MUELLE</text>
+
+                    <!-- 22-T-01 Tank -->
+                    <circle cx="280" cy="130" r="30" fill="#e8e8e8" stroke="#999" stroke-width="1.5"/>
+                    <text x="280" y="135" class="label-small">22-T-01</text>
+
+                    <!-- Torre de Enfriamiento -->
+                    <rect x="340" y="140" width="130" height="80" fill="#e0e8f0" stroke="#999" stroke-width="1"/>
+                    <text x="405" y="175" class="label-small">Torre de</text>
+                    <text x="405" y="190" class="label-small">Enfriamiento</text>
+
+                    <!-- Recinto depositos quimicos -->
+                    <rect x="850" y="130" width="160" height="60" fill="#f0e8e0" stroke="#999" stroke-width="1"/>
+                    <text x="930" y="155" class="label-small">Recinto depositos</text>
+                    <text x="930" y="170" class="label-small">quimicos</text>
+
+                    <!-- SILO UREA -->
+                    <rect x="490" y="130" width="200" height="90" fill="#e8e8e8" stroke="#999" stroke-width="1.5"/>
+                    <text x="590" y="180" class="area-label">SILO UREA</text>
+
+                    <!-- Planta de Pretratamiento -->
+                    <rect x="200" y="340" width="160" height="80" fill="#e8e8e8" stroke="#999" stroke-width="1"/>
+                    <text x="280" y="375" class="label-small">Planta de</text>
+                    <text x="280" y="390" class="label-small">Pretratamiento</text>
+
+                    <!-- PLANTA AMONIACO -->
+                    <rect x="400" y="250" width="280" height="220" fill="#f0f0e8" stroke="#999" stroke-width="2"/>
+                    <text x="540" y="370" class="area-label">PLANTA</text>
+                    <text x="540" y="395" class="area-label">AMONIACO</text>
+
+                    <!-- PLANTA UREA -->
+                    <rect x="750" y="220" width="250" height="280" fill="#f0f0e8" stroke="#999" stroke-width="2"/>
+                    <text x="875" y="360" class="area-label">PLANTA</text>
+                    <text x="875" y="385" class="area-label">UREA</text>
+
+                    <!-- Via Ferrocarril label -->
+                    <line x1="1020" y1="280" x2="1150" y2="220" stroke="#888" stroke-width="1" stroke-dasharray="8,4"/>
+                    <text x="1080" y="245" class="label-tiny">Via Ferrocarril</text>
+                    <text x="1080" y="258" class="label-tiny">Garro-Galvan</text>
+
+                    <!-- Carga de camiones -->
+                    <rect x="1050" y="130" width="100" height="50" fill="#e8e0e0" stroke="#999" stroke-width="1"/>
+                    <text x="1100" y="152" class="label-tiny">Carga de</text>
+                    <text x="1100" y="165" class="label-tiny">camiones</text>
+
+                    <!-- V-160 -->
+                    <circle cx="830" y="180" r="15" fill="#e8e8e8" stroke="#999" stroke-width="1"/>
+                    <text x="830" y="184" class="label-tiny">V-160</text>
+
+                    <!-- Reservorio de Agua Cruda -->
+                    <rect x="750" y="580" width="280" height="120" fill="#d4eaf7" stroke="#88aabb" stroke-width="2" rx="5"/>
+                    <text x="890" y="640" class="area-label">Reservorio de</text>
+                    <text x="890" y="665" class="area-label">Agua Cruda</text>
+
+                    <!-- Balance -->
+                    <rect x="1080" y="700" width="100" height="60" fill="#e8e8e8" stroke="#999" stroke-width="1" rx="3"/>
+                    <text x="1130" y="735" class="label-small">Balance</text>
+
+                    <!-- ============ FIRE LINES (red = fuera de servicio, green = en servicio) ============ -->
+                    <g id="fire-lines">
+                        <!-- Main Ring - Top horizontal from Muelle to East -->
+                        <line class="fire-line" id="line-1" x1="120" y1="240" x2="280" y2="240" data-status="off"/>
+                        <line class="fire-line" id="line-2" x1="280" y1="240" x2="400" y2="240" data-status="off"/>
+                        <line class="fire-line" id="line-3" x1="400" y1="240" x2="540" y2="240" data-status="off"/>
+                        <line class="fire-line" id="line-4" x1="540" y1="240" x2="680" y2="240" data-status="off"/>
+                        <line class="fire-line" id="line-5" x1="680" y1="240" x2="750" y2="240" data-status="off"/>
+                        <line class="fire-line" id="line-6" x1="750" y1="240" x2="900" y2="240" data-status="off"/>
+
+                        <!-- Bottom horizontal line -->
+                        <line class="fire-line" id="line-7" x1="120" y1="520" x2="280" y2="520" data-status="off"/>
+                        <line class="fire-line" id="line-8" x1="280" y1="520" x2="400" y2="520" data-status="off"/>
+                        <line class="fire-line" id="line-9" x1="400" y1="520" x2="540" y2="520" data-status="off"/>
+                        <line class="fire-line" id="line-10" x1="540" y1="520" x2="680" y2="520" data-status="off"/>
+                        <line class="fire-line" id="line-11" x1="680" y1="520" x2="750" y2="520" data-status="off"/>
+                        <line class="fire-line" id="line-12" x1="750" y1="520" x2="900" y2="520" data-status="off"/>
+
+                        <!-- Left vertical (Muelle side) -->
+                        <line class="fire-line" id="line-13" x1="120" y1="180" x2="120" y2="240" data-status="off"/>
+                        <line class="fire-line" id="line-14" x1="120" y1="240" x2="120" y2="380" data-status="off"/>
+                        <line class="fire-line" id="line-15" x1="120" y1="380" x2="120" y2="520" data-status="off"/>
+
+                        <!-- Vertical connectors -->
+                        <line class="fire-line" id="line-16" x1="280" y1="240" x2="280" y2="340" data-status="off"/>
+                        <line class="fire-line" id="line-17" x1="280" y1="340" x2="280" y2="420" data-status="off"/>
+                        <line class="fire-line" id="line-18" x1="280" y1="420" x2="280" y2="520" data-status="off"/>
+
+                        <line class="fire-line" id="line-19" x1="400" y1="240" x2="400" y2="350" data-status="off"/>
+                        <line class="fire-line" id="line-20" x1="400" y1="350" x2="400" y2="470" data-status="off"/>
+                        <line class="fire-line" id="line-21" x1="400" y1="470" x2="400" y2="520" data-status="off"/>
+
+                        <line class="fire-line" id="line-22" x1="540" y1="240" x2="540" y2="350" data-status="off"/>
+                        <line class="fire-line" id="line-23" x1="540" y1="350" x2="540" y2="470" data-status="off"/>
+                        <line class="fire-line" id="line-24" x1="540" y1="470" x2="540" y2="520" data-status="off"/>
+
+                        <line class="fire-line" id="line-25" x1="680" y1="240" x2="680" y2="350" data-status="off"/>
+                        <line class="fire-line" id="line-26" x1="680" y1="350" x2="680" y2="470" data-status="off"/>
+                        <line class="fire-line" id="line-27" x1="680" y1="470" x2="680" y2="520" data-status="off"/>
+
+                        <!-- Right verticals around Planta Urea -->
+                        <line class="fire-line" id="line-28" x1="750" y1="240" x2="750" y2="380" data-status="off"/>
+                        <line class="fire-line" id="line-29" x1="750" y1="380" x2="750" y2="520" data-status="off"/>
+
+                        <line class="fire-line" id="line-30" x1="900" y1="240" x2="900" y2="380" data-status="off"/>
+                        <line class="fire-line" id="line-31" x1="900" y1="380" x2="900" y2="520" data-status="off"/>
+
+                        <!-- Connection from right ring to Reservoir -->
+                        <line class="fire-line" id="line-32" x1="900" y1="520" x2="900" y2="580" data-status="off"/>
+                        <line class="fire-line" id="line-33" x1="750" y1="520" x2="750" y2="580" data-status="off"/>
+
+                        <!-- Muelle dock line going up -->
+                        <line class="fire-line" id="line-34" x1="120" y1="120" x2="120" y2="180" data-status="off"/>
+
+                        <!-- Horizontal middle connector -->
+                        <line class="fire-line" id="line-35" x1="120" y1="380" x2="200" y2="380" data-status="off"/>
+                        <line class="fire-line" id="line-36" x1="200" y1="380" x2="280" y2="380" data-status="off"/>
+
+                        <!-- Branch to 22-T-01 -->
+                        <line class="fire-line" id="line-37" x1="280" y1="180" x2="280" y2="240" data-status="off"/>
+                        <line class="fire-line" id="line-38" x1="280" y1="160" x2="280" y2="180" data-status="off"/>
+
+                        <!-- Horizontal connector between plants mid -->
+                        <line class="fire-line" id="line-39" x1="680" y1="350" x2="750" y2="350" data-status="off"/>
+                        <line class="fire-line" id="line-40" x1="750" y1="350" x2="900" y2="350" data-status="off"/>
+
+                        <!-- Silo Urea connections -->
+                        <line class="fire-line" id="line-41" x1="540" y1="180" x2="540" y2="240" data-status="off"/>
+                        <line class="fire-line" id="line-42" x1="490" y1="180" x2="540" y2="180" data-status="off"/>
+                        <line class="fire-line" id="line-43" x1="540" y1="180" x2="690" y2="180" data-status="off"/>
+
+                        <!-- Line to Balance -->
+                        <line class="fire-line" id="line-44" x1="900" y1="520" x2="1080" y2="520" data-status="off"/>
+                        <line class="fire-line" id="line-45" x1="1080" y1="520" x2="1080" y2="700" data-status="off"/>
+
+                        <!-- Upper right lines -->
+                        <line class="fire-line" id="line-46" x1="900" y1="240" x2="1000" y2="240" data-status="off"/>
+                        <line class="fire-line" id="line-47" x1="1000" y1="240" x2="1000" y2="180" data-status="off"/>
+                        <line class="fire-line" id="line-48" x1="900" y1="180" x2="1000" y2="180" data-status="off"/>
+
+                        <!-- Inner ammonia plant lines -->
+                        <line class="fire-line" id="line-49" x1="400" y1="350" x2="540" y2="350" data-status="off"/>
+                        <line class="fire-line" id="line-50" x1="540" y1="350" x2="680" y2="350" data-status="off"/>
+
+                        <!-- Bottom extensions -->
+                        <line class="fire-line" id="line-51" x1="280" y1="520" x2="280" y2="600" data-status="off"/>
+                        <line class="fire-line" id="line-52" x1="540" y1="520" x2="540" y2="600" data-status="off"/>
+                    </g>
+
+                    <!-- ============ VALVES ============ -->
+                    <g id="valves">
+                        <!-- Valves on top horizontal -->
+                        <use href="#valve-symbol" class="valve" id="valve-1" x="192" y="232" width="16" height="16" data-status="off"/>
+                        <use href="#valve-symbol" class="valve" id="valve-2" x="332" y="232" width="16" height="16" data-status="off"/>
+                        <use href="#valve-symbol" class="valve" id="valve-3" x="462" y="232" width="16" height="16" data-status="off"/>
+                        <use href="#valve-symbol" class="valve" id="valve-4" x="602" y="232" width="16" height="16" data-status="off"/>
+                        <use href="#valve-symbol" class="valve" id="valve-5" x="710" y="232" width="16" height="16" data-status="off"/>
+                        <use href="#valve-symbol" class="valve" id="valve-6" x="820" y="232" width="16" height="16" data-status="off"/>
+
+                        <!-- Valves on bottom horizontal -->
+                        <use href="#valve-symbol" class="valve" id="valve-7" x="192" y="512" width="16" height="16" data-status="off"/>
+                        <use href="#valve-symbol" class="valve" id="valve-8" x="332" y="512" width="16" height="16" data-status="off"/>
+                        <use href="#valve-symbol" class="valve" id="valve-9" x="462" y="512" width="16" height="16" data-status="off"/>
+                        <use href="#valve-symbol" class="valve" id="valve-10" x="602" y="512" width="16" height="16" data-status="off"/>
+                        <use href="#valve-symbol" class="valve" id="valve-11" x="710" y="512" width="16" height="16" data-status="off"/>
+                        <use href="#valve-symbol" class="valve" id="valve-12" x="820" y="512" width="16" height="16" data-status="off"/>
+
+                        <!-- Valves on left vertical -->
+                        <use href="#valve-symbol" class="valve" id="valve-13" x="112" y="198" width="16" height="16" data-status="off"/>
+                        <use href="#valve-symbol" class="valve" id="valve-14" x="112" y="300" width="16" height="16" data-status="off"/>
+                        <use href="#valve-symbol" class="valve" id="valve-15" x="112" y="440" width="16" height="16" data-status="off"/>
+
+                        <!-- Valves on vertical connectors -->
+                        <use href="#valve-symbol" class="valve" id="valve-16" x="272" y="282" width="16" height="16" data-status="off"/>
+                        <use href="#valve-symbol" class="valve" id="valve-17" x="272" y="462" width="16" height="16" data-status="off"/>
+
+                        <use href="#valve-symbol" class="valve" id="valve-18" x="392" y="290" width="16" height="16" data-status="off"/>
+                        <use href="#valve-symbol" class="valve" id="valve-19" x="392" y="490" width="16" height="16" data-status="off"/>
+
+                        <use href="#valve-symbol" class="valve" id="valve-20" x="532" y="290" width="16" height="16" data-status="off"/>
+                        <use href="#valve-symbol" class="valve" id="valve-21" x="532" y="490" width="16" height="16" data-status="off"/>
+
+                        <use href="#valve-symbol" class="valve" id="valve-22" x="672" y="290" width="16" height="16" data-status="off"/>
+                        <use href="#valve-symbol" class="valve" id="valve-23" x="672" y="490" width="16" height="16" data-status="off"/>
+
+                        <!-- Valves on right side -->
+                        <use href="#valve-symbol" class="valve" id="valve-24" x="742" y="300" width="16" height="16" data-status="off"/>
+                        <use href="#valve-symbol" class="valve" id="valve-25" x="742" y="440" width="16" height="16" data-status="off"/>
+
+                        <use href="#valve-symbol" class="valve" id="valve-26" x="892" y="300" width="16" height="16" data-status="off"/>
+                        <use href="#valve-symbol" class="valve" id="valve-27" x="892" y="440" width="16" height="16" data-status="off"/>
+
+                        <!-- Reservoir connection valves -->
+                        <use href="#valve-symbol" class="valve" id="valve-28" x="892" y="545" width="16" height="16" data-status="off"/>
+                        <use href="#valve-symbol" class="valve" id="valve-29" x="742" y="545" width="16" height="16" data-status="off"/>
+
+                        <!-- Muelle top valve -->
+                        <use href="#valve-symbol" class="valve" id="valve-30" x="112" y="142" width="16" height="16" data-status="off"/>
+
+                        <!-- Mid horizontal connector valves -->
+                        <use href="#valve-symbol" class="valve" id="valve-31" x="152" y="372" width="16" height="16" data-status="off"/>
+                        <use href="#valve-symbol" class="valve" id="valve-32" x="232" y="372" width="16" height="16" data-status="off"/>
+
+                        <!-- Inner plant valves -->
+                        <use href="#valve-symbol" class="valve" id="valve-33" x="462" y="342" width="16" height="16" data-status="off"/>
+                        <use href="#valve-symbol" class="valve" id="valve-34" x="602" y="342" width="16" height="16" data-status="off"/>
+                        <use href="#valve-symbol" class="valve" id="valve-35" x="710" y="342" width="16" height="16" data-status="off"/>
+                        <use href="#valve-symbol" class="valve" id="valve-36" x="820" y="342" width="16" height="16" data-status="off"/>
+
+                        <!-- 22-T-01 valve -->
+                        <use href="#valve-symbol" class="valve" id="valve-37" x="272" y="168" width="16" height="16" data-status="off"/>
+
+                        <!-- Silo urea connection valves -->
+                        <use href="#valve-symbol" class="valve" id="valve-38" x="532" y="200" width="16" height="16" data-status="off"/>
+                        <use href="#valve-symbol" class="valve" id="valve-39" x="610" y="172" width="16" height="16" data-status="off"/>
+
+                        <!-- Balance area valve -->
+                        <use href="#valve-symbol" class="valve" id="valve-40" x="982" y="512" width="16" height="16" data-status="off"/>
+                        <use href="#valve-symbol" class="valve" id="valve-41" x="1072" y="600" width="16" height="16" data-status="off"/>
+
+                        <!-- Upper right valves -->
+                        <use href="#valve-symbol" class="valve" id="valve-42" x="942" y="232" width="16" height="16" data-status="off"/>
+                        <use href="#valve-symbol" class="valve" id="valve-43" x="942" y="172" width="16" height="16" data-status="off"/>
+                    </g>
+
+                    <!-- ============ LABELS ON LINES (optional info) ============ -->
+                    <!-- Tooltip overlay - hidden by default -->
+                    <g id="tooltip" visibility="hidden">
+                        <rect x="0" y="0" width="160" height="30" rx="4" fill="rgba(0,0,0,0.8)"/>
+                        <text x="80" y="20" text-anchor="middle" fill="white" font-size="12" id="tooltip-text"></text>
+                    </g>
+                </svg>
+            </div>
+        </div>
+
+        <!-- Toast notification -->
+        <div id="toast" class="toast hidden"></div>
+    </div>
+
+    <script src="js/app.js"></script>
+</body>
+</html>
