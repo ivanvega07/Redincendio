@@ -1,0 +1,121 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  username  String   @unique
+  password  String
+  nombre    String
+  apellido  String
+  dni       String   @unique
+  rol       Role
+  seccionId String?
+  seccion   Seccion? @relation(fields: [seccionId], references: [id])
+  activo    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  planillasFirmadas  Planilla[] @relation("JefeFirma")
+  planillasVisadas   Planilla[] @relation("JefaturaVisa")
+  planillasCargadas  Planilla[] @relation("PersonalCarga")
+  historialAcciones  HistorialPlanilla[]
+}
+
+enum Role {
+  ADMIN
+  JEFE_SECCION
+  JEFATURA
+  PERSONAL
+}
+
+model Seccion {
+  id       String     @id @default(cuid())
+  nombre   String
+  numero   Int        @unique
+  usuarios User[]
+  planillas Planilla[]
+}
+
+model Categoria {
+  id           String         @id @default(cuid())
+  nombre       String
+  descripcion  String?
+  puntajeMax   Int
+  orden        Int
+  activa       Boolean        @default(true)
+  calificaciones Calificacion[]
+}
+
+model Planilla {
+  id      String         @id @default(cuid())
+  seccionId String
+  seccion   Seccion        @relation(fields: [seccionId], references: [id])
+  mes     Int
+  anio    Int
+  estado  EstadoPlanilla @default(BORRADOR)
+
+  firmadaPorJefe  Boolean   @default(false)
+  fechaFirmaJefe  DateTime?
+  jefeId          String?
+  jefe            User?     @relation("JefeFirma", fields: [jefeId], references: [id])
+
+  visadaPorJefatura Boolean   @default(false)
+  fechaVisado       DateTime?
+  jefaturaId        String?
+  jefatura          User?     @relation("JefaturaVisa", fields: [jefaturaId], references: [id])
+
+  revocada         Boolean   @default(false)
+  motivoRevocacion String?
+  fechaRevocacion  DateTime?
+
+  cargadaEnSistema Boolean   @default(false)
+  fechaCarga       DateTime?
+  personalId       String?
+  personal         User?     @relation("PersonalCarga", fields: [personalId], references: [id])
+
+  calificaciones Calificacion[]
+  historial      HistorialPlanilla[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([seccionId, mes, anio])
+}
+
+enum EstadoPlanilla {
+  BORRADOR
+  ENVIADA
+  VISADA
+  REVOCADA
+  CARGADA
+}
+
+model Calificacion {
+  id          String   @id @default(cuid())
+  planillaId  String
+  planilla    Planilla @relation(fields: [planillaId], references: [id], onDelete: Cascade)
+  bomberoId   String
+  categoriaId String
+  categoria   Categoria @relation(fields: [categoriaId], references: [id])
+  puntaje     Int
+  observacion String?
+
+  @@unique([planillaId, bomberoId, categoriaId])
+}
+
+model HistorialPlanilla {
+  id         String   @id @default(cuid())
+  planillaId String
+  planilla   Planilla @relation(fields: [planillaId], references: [id], onDelete: Cascade)
+  accion     String
+  usuarioId  String
+  usuario    User     @relation(fields: [usuarioId], references: [id])
+  detalle    String?
+  fecha      DateTime @default(now())
+}

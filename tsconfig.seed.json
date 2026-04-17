@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "esModuleInterop": true,
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "outDir": "./dist",
+    "target": "ES2017",
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": ["prisma/**/*.ts"],
+  "exclude": ["node_modules"]
+}
